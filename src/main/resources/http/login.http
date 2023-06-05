@@ -1,0 +1,27 @@
+### registration
+POST localhost:8080/auth/registration
+Content-Type: application/json
+
+{
+  "firstname": "Azimjon",
+  "lastname": "Nazarov",
+  "email": "nazarovazimjon888@gmail.com",
+  "password": "200622az"
+}
+
+
+### login
+POST localhost:8080/auth/authorization
+Content-Type: application/json
+
+{
+  "email": "nazarovazimjon888@gmail.com",
+  "password": "200622az"
+}
+
+### test
+GET localhost:8080/test/hello
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXphcm92YXppbWpvbjg4OEBnbWFpbC5jb20iLCJpYXQiOjE2Nzk5MzI0MzksImV4cCI6MTY3OTkzMjQ5OX0.RJj1kZkQUik1b7xksDb4DEW_4B4rcq420GniyD_rV58
+### refresh token
+GET localhost:8080/auth/token/refresh
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJuYXphcm92YXppbWpvbjg4OEBnbWFpbC5jb20iLCJpYXQiOjE2Nzk5MzIxOTEsImV4cCI6MTY3OTkzNDU5MX0.w_fzqFOEmh8atO2tz7iyayst0BVCX6ndlgaqXnHBMEs
