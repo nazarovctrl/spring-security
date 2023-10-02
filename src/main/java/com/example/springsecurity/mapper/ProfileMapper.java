@@ -17,7 +17,7 @@ public class ProfileMapper {
         profileDTO.setEmail(entity.getEmail());
 
         profileDTO.setRole(entity.getRole());
-        profileDTO.setVisible(entity.getVisible());
+        profileDTO.setVisible(entity.getIsVisible());
         profileDTO.setCreatedDate(entity.getCreatedDate());
 
         return profileDTO;
