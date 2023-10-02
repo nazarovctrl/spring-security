@@ -13,6 +13,4 @@ public class LoginDTO {
 
     @Size(min = 8, message = "Password required")
     private String password;
-
-
 }

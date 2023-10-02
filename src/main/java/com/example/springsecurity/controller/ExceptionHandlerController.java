@@ -2,8 +2,6 @@ package com.example.springsecurity.controller;
 
 
 import com.example.springsecurity.exp.EmailAlreadyExistsException;
-import com.example.springsecurity.exp.JWTTokenExpiredException;
-import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -40,11 +38,4 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler {
     private ResponseEntity<?> handler(EmailAlreadyExistsException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
-
-    @ExceptionHandler({JWTTokenExpiredException.class})
-    private ResponseEntity<?> handler(JWTTokenExpiredException e) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-    }
-
-
 }

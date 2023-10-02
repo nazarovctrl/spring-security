@@ -1,4 +1,4 @@
-package com.example.springsecurity.config;
+package com.example.springsecurity.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtFilter;
-    private final CustomUserDetailService userDetailService;
+    private final ProfileDetailsService userDetailService;
     private static final String[] AUTH_WHITELIST = {
             "/v2/api-docs",
             "/configuration/ui",

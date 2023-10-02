@@ -1,21 +1,20 @@
 package com.example.springsecurity.controller;
 
-import com.example.springsecurity.config.CustomUserDetailService;
-import com.example.springsecurity.config.JwtService;
+import com.example.springsecurity.security.ProfileDetailsService;
+import com.example.springsecurity.security.JwtService;
 import com.example.springsecurity.dto.auth.LoginDTO;
 import com.example.springsecurity.dto.auth.LoginResponseDTO;
 import com.example.springsecurity.dto.auth.RegistrationDTO;
 import com.example.springsecurity.dto.profile.ProfileResponseDTO;
-import com.example.springsecurity.exp.JWTTokenExpiredException;
+import com.example.springsecurity.security.ResponseGenerator;
 import com.example.springsecurity.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,26 +23,20 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-
-@Slf4j
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Authorization Controller", description = "This controller for authorization")
 public class AuthController {
 
     private final AuthService service;
     private final JwtService jwtService;
-    private final CustomUserDetailService userDetailService;
-
-    public AuthController(AuthService service, JwtService jwtService, CustomUserDetailService userDetailService) {
-        this.service = service;
-        this.jwtService = jwtService;
-        this.userDetailService = userDetailService;
-    }
+    private final ProfileDetailsService userDetailService;
+    private final ResponseGenerator responseGenerator;
 
 
     @Operation(summary = "Method for registration", description = "This method used to create a user")
@@ -56,7 +49,7 @@ public class AuthController {
 
 
     @Operation(summary = "Method for authorization", description = "This method used for Login")
-    @PostMapping("/authorization")
+    @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginDTO dto) {
         log.info(" Login :  email {} ", dto.getEmail());
         LoginResponseDTO response = service.login(dto);
@@ -66,42 +59,26 @@ public class AuthController {
     @Operation(summary = "Method for refresh token", description = "This method used for refresh token")
     @GetMapping("/token/refresh")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String authorizationHeader = request.getHeader("AUTHORIZATION");
+        String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
 
-            try {
-                String refreshToken = authorizationHeader.substring("Bearer ".length());
-                jwtService.isTokenExpired(refreshToken);
-
-                Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(jwtService.getRefreshTokenSignInKey())
-                        .build()
-                        .parseClaimsJws(refreshToken)
-                        .getBody();
-                Function<Claims, String> claimsResolver = Claims::getSubject;
-                String username = claimsResolver.apply(claims);
-                UserDetails userDetails = userDetailService.loadUserByUsername(username);
-
-                String accessToken = jwtService.generateAccessToken(userDetails);
-
-                Map<String, String> tokens = new HashMap<>();
-                tokens.put("access_token", accessToken);
-                tokens.put("refresh_token", refreshToken);
-                response.setContentType(APPLICATION_JSON_VALUE);
-                new ObjectMapper().writeValue(response.getOutputStream(), tokens);
-            } catch (JWTTokenExpiredException e) {
-                response.setHeader("error", e.getMessage());
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                Map<String, String> error = new HashMap<>();
-                error.put("error_message", e.getMessage());
-                response.setContentType(APPLICATION_JSON_VALUE);
-                new ObjectMapper().writeValue(response.getOutputStream(), error);
+            String refreshToken = authorizationHeader.substring("Bearer ".length());
+            if (jwtService.isTokenExpired(refreshToken)) {
+                String tokenExpiredMessage = jwtService.getTokenExpiredMessage(refreshToken);
+                responseGenerator.generateError(tokenExpiredMessage, response);
                 return;
             }
 
+            String username = jwtService.extractRefreshTokenUsername(refreshToken);
+            UserDetails userDetails = userDetailService.loadUserByUsername(username);
 
+            String accessToken = jwtService.generateAccessToken(userDetails.getUsername());
+
+            Map<String, String> tokens = new HashMap<>();
+            tokens.put("access_token", accessToken);
+            tokens.put("refresh_token", refreshToken);
+            response.setContentType(APPLICATION_JSON_VALUE);
+            new ObjectMapper().writeValue(response.getOutputStream(), tokens);
         }
-
     }
-
 }

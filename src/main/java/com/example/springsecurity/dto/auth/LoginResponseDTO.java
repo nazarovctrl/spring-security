@@ -1,6 +1,6 @@
 package com.example.springsecurity.dto.auth;
 
-import com.example.springsecurity.enums.UserRole;
+import com.example.springsecurity.enums.Role;
 import lombok.*;
 
 @Data
@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LoginResponseDTO {
-    private UserRole role;
+    private Role role;
     private String accessToken;
     private String refreshToken;
 

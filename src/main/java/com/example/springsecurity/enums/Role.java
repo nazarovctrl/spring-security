@@ -1,5 +1,5 @@
 package com.example.springsecurity.enums;
 
-public enum UserRole {
+public enum Role {
     ROLE_USER, ROLE_ADMIN
 }

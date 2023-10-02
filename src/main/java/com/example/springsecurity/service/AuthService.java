@@ -1,15 +1,14 @@
 package com.example.springsecurity.service;
 
-
-import com.example.springsecurity.UserEntity;
-import com.example.springsecurity.config.JwtService;
+import com.example.springsecurity.entity.ProfileEntity;
+import com.example.springsecurity.security.JwtService;
 import com.example.springsecurity.dto.auth.LoginDTO;
 import com.example.springsecurity.dto.auth.LoginResponseDTO;
 import com.example.springsecurity.dto.auth.RegistrationDTO;
 import com.example.springsecurity.dto.profile.ProfileResponseDTO;
-import com.example.springsecurity.enums.UserRole;
 import com.example.springsecurity.exp.EmailAlreadyExistsException;
-import com.example.springsecurity.repository.UserRepository;
+import com.example.springsecurity.mapper.ProfileMapper;
+import com.example.springsecurity.repository.ProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,52 +18,28 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
-    private final UserRepository repository;
-    private final JwtService jwtService;
+    private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ProfileMapper profileMapper;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     public ProfileResponseDTO registration(RegistrationDTO dto) {
-
-
-        Optional<UserEntity> exists = repository.findByEmail(dto.getEmail());
+        Optional<ProfileEntity> exists = profileRepository.findByEmail(dto.getEmail());
         if (exists.isPresent()) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
 
-        var user = UserEntity.builder()
-                .firstname(dto.getFirstname())
-                .lastname(dto.getLastname())
-                .email(dto.getEmail())
-                .password(passwordEncoder.encode(dto.getPassword()))
-                .role(UserRole.ROLE_USER)
-                .build();
+        dto.setPassword(passwordEncoder.encode(dto.getPassword()));
+        ProfileEntity profile = profileMapper.map(dto);
 
-        repository.save(user);
+        profileRepository.save(profile);
 
-
-        return getDTO(user);
-
-    }
-
-
-    public ProfileResponseDTO getDTO(UserEntity entity) {
-
-        ProfileResponseDTO profileDTO = new ProfileResponseDTO();
-        profileDTO.setId(entity.getId());
-        profileDTO.setFirstname(entity.getFirstname());
-        profileDTO.setLastname(entity.getLastname());
-        profileDTO.setEmail(entity.getEmail());
-
-        profileDTO.setRole(entity.getRole());
-        profileDTO.setVisible(entity.getVisible());
-        profileDTO.setCreatedDate(entity.getCreatedDate());
-
-        return profileDTO;
+        return profileMapper.map(profile);
     }
 
 
@@ -75,11 +50,12 @@ public class AuthService {
                         dto.getPassword()
                 )
         );
-        var user = repository.findByEmail(dto.getEmail()).orElseThrow();
-        var accessToken = jwtService.generateAccessToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
+        ProfileEntity profile = profileRepository.findByEmail(dto.getEmail()).orElseThrow();
+
+        String accessToken = jwtService.generateAccessToken(profile.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(profile.getEmail());
         return LoginResponseDTO.builder()
-                .role(user.getRole())
+                .role(profile.getRole())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();

@@ -1,6 +1,6 @@
 package com.example.springsecurity.dto.auth;
 
-import com.example.springsecurity.enums.UserRole;
+import com.example.springsecurity.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -24,6 +24,5 @@ public class AdminRegistrationDTO {
     private String password;
 
     @NotBlank(message = "Role required")
-    private UserRole role;
-
+    private Role role;
 }
