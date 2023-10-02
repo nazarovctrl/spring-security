@@ -47,9 +47,8 @@ public class AuthService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         dto.getEmail(),
-                        dto.getPassword()
-                )
-        );
+                        dto.getPassword()));
+
         ProfileEntity profile = profileRepository.findByEmail(dto.getEmail()).orElseThrow();
 
         String accessToken = jwtService.generateAccessToken(profile.getEmail());

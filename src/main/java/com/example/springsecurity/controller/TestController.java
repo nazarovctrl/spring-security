@@ -9,13 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/test")
-
 public class TestController {
 
-    @SecurityRequirement(name = "Bearer Authentication")
-    @PreAuthorize("hasRole('USER')")
     @GetMapping("/hello")
     public ResponseEntity<?> getString() {
+        System.out.println();
         return ResponseEntity.ok("Hello");
     }
 }

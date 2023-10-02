@@ -7,6 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -17,11 +18,16 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    private static final String ACCESS_TOKEN_SECRET_KEY = "4125442A472D4B6150645367566B59703373357638792F423F4528482B4D6251";
-    private static final String REFRESH_TOKEN_SECRET_KEY = "432A462D4A614E645267556B586E3272357538782F413F4428472B4B62506553";
 
-    private static final int ACCESS_TOKEN_LIVE = 1000 * 60; // 20 minut
-    private static final int REFRESH_TOKEN_LIVE = 1000 * 60 * 40; // 40 minut
+    @Value("${security.access_token.secret_key}")
+    private String ACCESS_TOKEN_SECRET_KEY;
+    @Value("${security.refresh_token.secret_key}")
+    private String REFRESH_TOKEN_SECRET_KEY;
+
+    @Value("${security.access_token.live}")
+    private int ACCESS_TOKEN_LIVE;
+    @Value("${security.refresh_token.live}")
+    private int REFRESH_TOKEN_LIVE;
 
     public String extractAccessTokenUsername(String accessToken) {
         return extractClaim(accessToken, Claims::getSubject, getAccessTokenSignInKey());
