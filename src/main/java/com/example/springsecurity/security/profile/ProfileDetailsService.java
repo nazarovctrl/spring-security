@@ -1,4 +1,4 @@
-package com.example.springsecurity.security;
+package com.example.springsecurity.security.profile;
 
 import com.example.springsecurity.entity.ProfileEntity;
 import com.example.springsecurity.repository.ProfileRepository;

@@ -10,26 +10,20 @@ import org.springframework.stereotype.Component;
 public class ProfileMapper {
 
     public ProfileResponseDTO map(ProfileEntity entity) {
-        ProfileResponseDTO profileDTO = new ProfileResponseDTO();
-        profileDTO.setId(entity.getId());
-        profileDTO.setFirstname(entity.getFirstname());
-        profileDTO.setLastname(entity.getLastname());
-        profileDTO.setEmail(entity.getEmail());
-
-        profileDTO.setRole(entity.getRole());
-        profileDTO.setVisible(entity.getIsVisible());
-        profileDTO.setCreatedDate(entity.getCreatedDate());
-
-        return profileDTO;
+        return ProfileResponseDTO.builder()
+                .id(entity.getId())
+                .fullName(entity.getFullName())
+                .email(entity.getEmail())
+                .role(entity.getRole())
+                .isVisible(entity.getIsVisible())
+                .createdDate(entity.getCreatedDate()).build();
     }
 
     public ProfileEntity map(RegistrationDTO dto) {
-        return ProfileEntity.builder()
-                .firstname(dto.getFirstname())
-                .lastname(dto.getLastname())
+        return new ProfileEntity().toBuilder()
+                .fullName(dto.getFirstname())
                 .email(dto.getEmail())
                 .password(dto.getPassword())
-                .role(Role.ROLE_USER)
-                .build();
+                .role(Role.USER).build();
     }
 }

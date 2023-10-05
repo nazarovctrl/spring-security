@@ -7,15 +7,14 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 
+@Builder
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProfileResponseDTO {
     private Integer id;
-    private String firstname;
-    private String lastname;
+    private String fullName;
     private String email;
     private Role role;
-    private Boolean visible;
-    private String photoId;
+    private Boolean isVisible;
     private LocalDateTime createdDate;
 }

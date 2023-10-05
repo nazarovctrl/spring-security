@@ -1,7 +1,6 @@
-package com.example.springsecurity.security;
+package com.example.springsecurity.security.profile;
 
 import com.example.springsecurity.entity.ProfileEntity;
-import com.example.springsecurity.enums.Role;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -50,9 +49,5 @@ public class ProfileDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    public Role getRole() {
-        return profile.getRole();
     }
 }

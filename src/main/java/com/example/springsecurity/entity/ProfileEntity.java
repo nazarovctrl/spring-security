@@ -1,6 +1,7 @@
 package com.example.springsecurity.entity;
 
 import com.example.springsecurity.enums.Role;
+import com.example.springsecurity.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "profile")
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProfileEntity {
@@ -20,10 +21,7 @@ public class ProfileEntity {
     private Integer id;
 
     @Column(nullable = false)
-    private String firstname;
-
-    @Column
-    private String lastname;
+    private String fullName;
 
     @Column(nullable = false)
     private String email;
@@ -35,10 +33,13 @@ public class ProfileEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Status status=Status.ACTIVE;
     @Column(nullable = false)
     private Boolean isVisible = true;
 
-    @Column
+    @Column(nullable = false)
     @CreationTimestamp
     private LocalDateTime createdDate;
 }

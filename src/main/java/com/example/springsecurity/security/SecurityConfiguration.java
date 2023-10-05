@@ -1,11 +1,15 @@
 package com.example.springsecurity.security;
 
 import com.example.springsecurity.enums.Role;
-import jakarta.servlet.http.HttpServletResponse;
+import com.example.springsecurity.security.jwt.JwtAuthenticationFilter;
+import com.example.springsecurity.security.profile.ProfileAuthenticationEntryPoint;
+import com.example.springsecurity.security.profile.ProfileDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,6 +25,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtFilter;
+    private final ProfileAuthenticationEntryPoint profileAuthenticationEntryPoint;
+    private final ProfileDetailsService profileDetailsService;
     private static final String[] AUTH_WHITELIST = {
             "/v2/api-docs",
             "/configuration/ui",
@@ -41,14 +47,14 @@ public class SecurityConfiguration {
                 .cors().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        http.exceptionHandling(handler -> handler.authenticationEntryPoint(((request, response, authException) ->
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage()))));
+        http.exceptionHandling().authenticationEntryPoint(profileAuthenticationEntryPoint);
+        http.authenticationProvider(authenticationProvider());
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests()
                 .requestMatchers(AUTH_WHITELIST).permitAll()
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/api/**").hasRole(Role.ROLE_USER.name())
+                .requestMatchers("/api/**").hasRole(Role.USER.name())
                 .anyRequest().authenticated();
 
         return http.build();
@@ -57,6 +63,15 @@ public class SecurityConfiguration {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(profileDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setHideUserNotFoundExceptions(false);
+        return authProvider;
     }
 
     @Bean

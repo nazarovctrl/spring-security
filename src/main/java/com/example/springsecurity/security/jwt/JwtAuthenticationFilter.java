@@ -1,5 +1,7 @@
-package com.example.springsecurity.security;
+package com.example.springsecurity.security.jwt;
 
+import com.example.springsecurity.security.profile.ProfileDetailsService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,13 +17,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final ProfileDetailsService userDetailsService;
-    private final ResponseGenerator responseGenerator;
 
     @Override
     protected void doFilterInternal(
@@ -41,16 +46,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String accessToken = authHeader.substring(7);
-        final String username = jwtService.extractAccessTokenUsername(accessToken);
 
+        if (jwtService.isTokenExpired(accessToken)) {
+            String tokenExpiredMessage = jwtService.getTokenExpiredMessage(accessToken);
+
+            response.setHeader("error", tokenExpiredMessage);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", tokenExpiredMessage);
+            response.setContentType(APPLICATION_JSON_VALUE);
+            new ObjectMapper().writeValue(response.getOutputStream(), error);
+            return;
+        }
+
+        final String username = jwtService.extractAccessTokenUsername(accessToken);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.isTokenExpired(accessToken)) {
-                String tokenExpiredMessage = jwtService.getTokenExpiredMessage(accessToken);
-                responseGenerator.generateError(tokenExpiredMessage, response);
-                return;
-            }
-
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,
                     null,

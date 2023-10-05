@@ -9,7 +9,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegistrationDTO {
-
     @NotBlank(message = "Firstname required")
     private String firstname;
 
@@ -21,9 +20,4 @@ public class RegistrationDTO {
 
     @NotBlank
     private String password;
-
-
-    private String photo;
-
-
 }
