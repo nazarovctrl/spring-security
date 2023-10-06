@@ -8,14 +8,11 @@ import com.example.springsecurity.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.io.IOException;
 
 
 @RestController
@@ -45,7 +42,7 @@ public class AuthController {
 
     @Operation(summary = "Method for refresh token", description = "This method used for refresh token")
     @GetMapping("/token/refresh")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
         return service.refreshToken(request);
     }
 }

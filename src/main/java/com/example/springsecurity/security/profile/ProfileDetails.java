@@ -1,8 +1,8 @@
 package com.example.springsecurity.security.profile;
 
 import com.example.springsecurity.entity.ProfileEntity;
+import com.example.springsecurity.enums.Status;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -17,7 +17,7 @@ public class ProfileDetails implements UserDetails {
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public Collection<SimpleGrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(profile.getRole().name()));
     }
 
@@ -38,7 +38,7 @@ public class ProfileDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !profile.getStatus().equals(Status.BLOCKED);
     }
 
     @Override
@@ -48,6 +48,6 @@ public class ProfileDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return profile.getIsVisible();
     }
 }

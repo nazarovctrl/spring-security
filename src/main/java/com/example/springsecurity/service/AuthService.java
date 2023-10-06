@@ -9,6 +9,7 @@ import com.example.springsecurity.dto.profile.ProfileResponseDTO;
 import com.example.springsecurity.exp.EmailAlreadyExistsException;
 import com.example.springsecurity.mapper.ProfileMapper;
 import com.example.springsecurity.repository.ProfileRepository;
+import com.example.springsecurity.security.profile.ProfileDetails;
 import com.example.springsecurity.security.profile.ProfileDetailsService;
 import com.example.springsecurity.util.MD5;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -54,17 +56,16 @@ public class AuthService {
 
 
     public LoginResponseDTO login(LoginDTO dto) {
-        authenticationManager.authenticate(
+        Authentication authenticate = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         dto.getEmail(),
                         MD5.md5(dto.getPassword())));
+        ProfileDetails profile = (ProfileDetails) authenticate.getPrincipal();
 
-        ProfileEntity profile = profileRepository.findByEmail(dto.getEmail()).orElseThrow();
-
-        String accessToken = jwtService.generateAccessToken(profile.getEmail());
-        String refreshToken = jwtService.generateRefreshToken(profile.getEmail());
+        String accessToken = jwtService.generateAccessToken(profile.getUsername());
+        String refreshToken = jwtService.generateRefreshToken(profile.getUsername());
         return LoginResponseDTO.builder()
-                .role(profile.getRole())
+                .authorities(profile.getAuthorities())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
@@ -87,6 +88,16 @@ public class AuthService {
 
         String username = jwtService.extractRefreshTokenUsername(refreshToken);
         UserDetails userDetails = profileDetailsService.loadUserByUsername(username);
+
+        if (!userDetails.isAccountNonLocked()) {
+            body.put("error", "User account is locked");
+            return ResponseEntity.status(SC_FORBIDDEN).body(body);
+        }
+        if (!userDetails.isEnabled()) {
+            body.put("error", "User account is locked");
+            return ResponseEntity.status(SC_FORBIDDEN).body("User is disabled");
+        }
+
         String accessToken = jwtService.generateAccessToken(userDetails.getUsername());
 
         body.put("accessToken", accessToken);

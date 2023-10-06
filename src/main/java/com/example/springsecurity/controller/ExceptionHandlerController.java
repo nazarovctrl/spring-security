@@ -1,6 +1,5 @@
 package com.example.springsecurity.controller;
 
-
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.example.springsecurity.exp.EmailAlreadyExistsException;
 import io.jsonwebtoken.security.SignatureException;

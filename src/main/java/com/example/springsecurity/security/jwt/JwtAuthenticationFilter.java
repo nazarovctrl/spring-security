@@ -49,19 +49,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (jwtService.isTokenExpired(accessToken)) {
             String tokenExpiredMessage = jwtService.getTokenExpiredMessage(accessToken);
-
-            response.setHeader("error", tokenExpiredMessage);
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            Map<String, String> error = new HashMap<>();
-            error.put("error", tokenExpiredMessage);
-            response.setContentType(APPLICATION_JSON_VALUE);
-            new ObjectMapper().writeValue(response.getOutputStream(), error);
+            writeError(response, tokenExpiredMessage);
             return;
         }
 
         final String username = jwtService.extractAccessTokenUsername(accessToken);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+            if (!userDetails.isAccountNonLocked()) {
+                writeError(response, "User account is locked");
+                return;
+            }
+            if (!userDetails.isEnabled()) {
+                writeError(response, "User is disabled");
+                return;
+            }
+
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,
                     null,
@@ -71,5 +75,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
         filterChain.doFilter(request, response);
+    }
+
+    private void writeError(HttpServletResponse response, String message) {
+        response.setHeader("error", message);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        Map<String, String> error = new HashMap<>();
+        error.put("error", message);
+        response.setContentType(APPLICATION_JSON_VALUE);
+        try {
+            new ObjectMapper().writeValue(response.getOutputStream(), error);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
