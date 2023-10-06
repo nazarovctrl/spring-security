@@ -1,2 +1,2 @@
 # spring-security
-This is my custon spring security conifguration
+This is my custom spring security configuration
